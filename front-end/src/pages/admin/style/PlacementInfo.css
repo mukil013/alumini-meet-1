@@ -1,0 +1,86 @@
+/* PlacementInfo.css */
+.placement-info-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+label {
+  font-weight: bold;
+}
+
+input,
+textarea {
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+button {
+  padding: 0.5rem 1rem;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* button:hover:not(:disabled) {
+  background-color: #0056b3;
+} */
+
+.error {
+  color: red;
+  text-align: center;
+  margin-top: 1rem;
+}
+
+.dialog-content{
+  height: fit-content;
+  padding: 1rem;
+}
+.dialog-content form{
+  width: 80%;
+}
+.dialog-content form label{
+  width: 100%;
+  display: flex;
+}
+.dialog-content form label p{
+  flex: 1;
+}
+.dialog-content form label input,.dialog-content form label textarea{
+  flex: 1;
+  border-radius: 8px;
+  resize: none;
+}

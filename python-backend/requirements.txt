@@ -1,0 +1,7 @@
+Flask
+Flask-Cors
+PyPDF2
+scikit-learn
+docx2txt
+PyCryptodome
+gunicorn

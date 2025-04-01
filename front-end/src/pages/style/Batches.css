@@ -1,0 +1,135 @@
+.batches-body{
+  height: 100%;
+  width: 100%;
+  background: #fff;
+  border-radius: 1rem;
+}
+#batches{
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  align-content: center;
+  gap: 1rem;
+}
+#batches li{
+  list-style: none;
+  height: 25vh;
+  width: 20vw;
+}
+#batches li button{
+  height: 100%;
+  width: 100%;
+  font-size: 2rem;
+  border-radius: 1rem;
+  border: 2px dashed #ebebeb;
+  outline: none;
+  background-color: #ebebeb55;
+  cursor: pointer;
+  transition: .4s all ease-in-out;
+  backdrop-filter: blur(1rem);
+  color: #d8d8d8;
+}
+#batches li button:hover{
+  color: #222;
+  box-shadow: 0 0 .5rem #ebebeb;
+  transition: .1s all ease-in-out;
+}
+#batches li button:active{
+  scale: 1.05;
+}
+.dialog-overlay{
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(.5rem);
+  background-color: #00000055;
+}
+.dialog-box{
+  max-height: 90vh;
+  height: 30vh;
+  width: 40vw;
+  overflow: auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  border-radius: 8px;
+  gap: 1rem;
+  padding: 1rem;
+}
+.dialog-box button{
+  width: 20%;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  height: 2.5rem;
+  background-color: red;
+  color: #fff;
+}
+
+.dialog-header{
+  width: 100%;
+  height: 100%;
+  background-color: #fff;
+  border: 1px dashed #9e9e9e;
+  border-radius: 1rem;
+  padding: 1rem;
+  position: sticky;
+  top: 0;
+}
+
+.user-list{
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 1rem;
+}
+
+.user-list li{
+  width: 100%;
+  list-style: none;
+  background-color: #fff;
+  border-radius: 1rem;
+  border-radius: 8px;
+  padding: 1rem;
+  border: 1px solid #ebebeb;
+}
+
+.batch-selected-year{
+  height: 3rem;
+  width: 100%;
+}
+.search-controls {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.filter-select {
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+.result-count {
+  margin: 10px 0;
+  font-style: italic;
+  color: #666;
+}
+
+.user-item a {
+  color: #0066cc;
+  text-decoration: none;
+}
+
+.user-item a:hover {
+  text-decoration: underline;
+}

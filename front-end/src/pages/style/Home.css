@@ -1,0 +1,27 @@
+.home-body{
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  position: relative;
+  background: linear-gradient(270deg, #f4d35e, #ffafcc, #a2d2ff);
+  background-size: 300% 300%;
+  animation: home-bg 5s infinite alternate linear;
+}
+@keyframes home-bg {
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: 100% 50%;
+  }
+}
+.navbar{
+  flex: 1;
+}
+.outlet{
+  padding: 1rem;
+  flex: 1;
+  width: 50vw;
+  height: 100%;
+  overflow: auto;
+}

@@ -1,0 +1,47 @@
+#events-body{
+  height: 100%;
+  width: 100%;
+  display: flex;
+  align-self: center;
+  gap: 1rem;
+  padding: 1rem;
+  background-color: #fff;
+  overflow: scroll;
+  border-radius: 1rem;
+}
+.event-container{
+  height: fit-content;
+  width: 25rem;
+  border: 1px solid #9e9e9e;
+  padding: 1rem;
+  border-radius: 1rem;
+  list-style: none;
+  display: flex;
+  gap: 1rem;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.event-container img{
+  width: 100%;
+  height: 30vh;
+  object-fit: cover;
+  border-radius: 8px;
+}
+.register-btn-events{
+  text-align: right;
+  padding: .8rem 1.5rem;
+  font-size: 1rem;
+  background-color: royalblue;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 8px;
+}
+.events-title{
+  font-size: 2rem;
+}
+.event-description{
+  height: 5rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}

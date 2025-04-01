@@ -1,0 +1,46 @@
+.profile-card{
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  width: 50%;
+  border-radius: 1rem;
+  border: 1px solid #9e9e9e55;
+  padding: 1rem;
+  gap: 1rem;
+  min-height: 15rem;
+  max-height: fit-content;
+  transition: .5s all ease-in-out;
+}
+.profile-card:hover{
+  background-color: #9e9e9e22;
+}
+.education b{
+  padding: 0 1rem;
+}
+.profile-card img{
+  border-radius: 1rem;
+}
+.profile-container{
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: #fff;
+  height: 100%;
+  width: 100%;
+  border-radius: 1rem;
+  gap: 1rem;
+}
+.bio{
+  text-align: justify;
+}
+#skills{
+  display: flex;
+  gap: 1rem;
+}
+.skill{
+  padding: .3rem 1rem;
+  background-color: #333;
+  border-radius: 2rem;
+  color: #fff;
+}
