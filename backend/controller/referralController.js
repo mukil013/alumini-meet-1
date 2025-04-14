@@ -57,18 +57,10 @@ const getUserReferrals = async (req, res) =>{
 
         const referrals = await Referral.find({ userId });
 
-        if (referrals.length === 0) {
-            return res.status(404).json({
-                status: "failure",
-                message: "No referrals found for the given user ID.",
-            });
-        }
-
-
-        res.status(200).json({
+        return res.status(200).json({
             status: "Success",
             message: "Referrals fetched successfully.",
-            referrals,
+            referrals: referrals,
         });
 
     }catch(error){

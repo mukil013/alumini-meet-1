@@ -150,18 +150,18 @@ async function EditPost(req, res) {
       return res.status(404).json({ message: "Mentorship group not found" });
     }
 
-    const index = parseInt(postIndex, 10);
-    if (isNaN(index) || index < 0 || index >= mentorship.posts.length) {
+    const index = parseInt(postIndex);
+    if (index >= mentorship.posts.length) {
       return res.status(400).json({ message: "Invalid post index" });
     }
 
     const post = mentorship.posts[index];
 
-    post.title = title || post.title;
-    post.description = description || post.description;
+    post.post.title = title || post.post.title;
+    post.post.description = description || post.post.description;
 
     if (req.file) {
-      post.image = {
+      post.post.image = {
         data: req.file.buffer,
         contentType: req.file.mimetype,
       };

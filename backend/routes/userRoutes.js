@@ -2,7 +2,14 @@ const express = require("express");
 const router = express.Router();
 const multer = require("multer");
 const upload = multer({ storage: multer.memoryStorage() });
-const { sendOTP, verifyOTP, validateUser, updateProfile, getUserById } = require("../controller/userController");
+const {
+  registerAdmin,
+  sendOTP,
+  verifyOTP,
+  validateUser,
+  updateProfile,
+  getUserById,
+} = require("../controller/userController");
 
 // Route to send OTP
 router.post("/sendOTP", sendOTP);
@@ -14,8 +21,12 @@ router.post("/verifyOTP", upload.single("userImg"), verifyOTP);
 router.post("/validateUser", validateUser);
 
 // Route to update user profile
-router.post("/updateProfile/:userId", upload.single("userImg"), updateProfile);
+router.put("/updateProfile/:userId", upload.single("userImg"), updateProfile);
 
-router.get("/getUser/:userId", getUserById)
+// Route to get user by ID
+router.get("/getUser/:userId", getUserById);
+
+// Route to register admin
+router.post("/registerAdmin", registerAdmin);
 
 module.exports = router;

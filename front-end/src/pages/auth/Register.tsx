@@ -10,10 +10,12 @@ export default function Register() {
   const VerificationLinkBackend = `${mainUrlPrefix}/user/verifyOtp`;
   const [, setRole] = useState("");
   const [next, setNext] = useState(false);
-  const [isVerificationDialogOpen, setIsVerificationDialogOpen] = useState(false);
+  const [isVerificationDialogOpen, setIsVerificationDialogOpen] =
+    useState(false);
   const [verificationCode, setVerificationCode] = useState("");
   const [verificationError, setVerificationError] = useState("");
   const [registeredEmail, setRegisteredEmail] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -28,7 +30,7 @@ export default function Register() {
   });
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({
@@ -54,22 +56,25 @@ export default function Register() {
       return;
     }
 
+    setIsLoading(true);
     try {
       await axios.post(SendOTPLinkBackend, { email: formData.email });
-      setIsVerificationDialogOpen(true); 
-      setRegisteredEmail(formData.email); 
-      window.location.href = "/login"
+      setIsVerificationDialogOpen(true);
+      setRegisteredEmail(formData.email);
     } catch (error) {
       if (axios.isAxiosError(error)) {
         alert(error.response?.data?.message || "Error sending OTP.");
       } else {
         alert("An error occurred. Please try again.");
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleVerificationSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     try {
       // Verify OTP and register user
       const response = await axios.post(VerificationLinkBackend, {
@@ -96,13 +101,20 @@ export default function Register() {
         });
         setRole("");
         setNext(false);
+
+        // Redirect to login after successful registration
+        window.location.href = "/login";
       }
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        setVerificationError(error.response?.data?.message || "Verification failed.");
+        setVerificationError(
+          error.response?.data?.message || "Verification failed.",
+        );
       } else {
         setVerificationError("An error occurred. Please try again.");
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -137,7 +149,8 @@ export default function Register() {
                     <path d="M480-120 200-272v-240L40-600l440-240 440 240v320h-80v-276l-80 44v240L480-120Zm0-332 274-148-274-148-274 148 274 148Zm0 241 200-108v-151L480-360 280-470v151l200 108Zm0-241Zm0 90Zm0 0Z" />
                   </svg>
                   <p>
-                    <b>Sign up as a student</b><br />
+                    <b>Sign up as a student</b>
+                    <br />
                     Compete, learn, and apply for jobs and internships
                   </p>
                 </button>
@@ -158,7 +171,8 @@ export default function Register() {
                     <path d="M160-80v-240h120v240H160Zm200 0v-476q-50 17-65 62.5T280-400h-80q0-128 75-204t205-76q100 0 150-49.5T680-880h80q0 88-37.5 157.5T600-624v544h-80v-240h-80v240h-80Zm120-640q-33 0-56.5-23.5T400-800q0-33 23.5-56.5T480-880q33 0 56.5 23.5T560-800q0 33-23.5 56.5T480-720Z" />
                   </svg>
                   <p>
-                    <b>Sign up as a alumini</b><br />
+                    <b>Sign up as a alumini</b>
+                    <br />
                     Compete, learn, and apply for jobs and internships
                   </p>
                 </button>
@@ -294,7 +308,11 @@ export default function Register() {
                     <option value="others">Other</option>
                   </select>
                 </label>
-                <input type="submit" value="Register" />
+                <input
+                  type="submit"
+                  value={isLoading ? "Processing..." : "Register"}
+                  disabled={isLoading}
+                />
                 <p className="redirect">
                   Already have an account? <Link to="/login">Login</Link>
                 </p>
@@ -303,48 +321,60 @@ export default function Register() {
           </form>
         </aside>
       </div>
-      {isVerificationDialogOpen && (
-        <div className="verification-dialog-overlay">
-          <div className="verification-dialog">
-            <h2>Email Verification</h2>
-            <p>We've sent a 4-digit code to {registeredEmail}</p>
-            <form onSubmit={handleVerificationSubmit}>
-              <input
-                type="number"
-                placeholder="Enter verification code"
-                value={verificationCode}
-                onChange={(e) => {
-                  const val = e.target.value.slice(0, 4);
-                  setVerificationCode(val);
-                  setVerificationError("");
+
+      <div
+        className={`verification-dialog-overlay ${isVerificationDialogOpen ? "active" : ""}`}
+      >
+        <div className="verification-dialog">
+          <h2>Email Verification</h2>
+          <p>We've sent a 4-digit code to {registeredEmail}</p>
+          <form onSubmit={handleVerificationSubmit}>
+            <input
+              type="number"
+              placeholder="Enter verification code"
+              value={verificationCode}
+              onChange={(e) => {
+                const val = e.target.value.slice(0, 4);
+                setVerificationCode(val);
+                setVerificationError("");
+              }}
+              required
+            />
+            {verificationError && <p className="error">{verificationError}</p>}
+            <div className="action-btns">
+              <button type="submit" disabled={isLoading}>
+                {isLoading ? "Verifying..." : "Verify"}
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    setIsLoading(true);
+                    await axios.post(SendOTPLinkBackend, {
+                      email: registeredEmail,
+                    });
+                    alert("New OTP sent!");
+                  } catch (error) {
+                    setVerificationError("Failed to resend OTP.");
+                    console.error(error);
+                  } finally {
+                    setIsLoading(false);
+                  }
                 }}
-                required
-              />
-              {verificationError && (
-                <p className="error">{verificationError}</p>
-              )}
-              <div className="action-btns">
-                <button type="submit">Verify</button>
-                <button
-                  type="button"
-                  onClick={async () => {
-                    try {
-                      await axios.post(SendOTPLinkBackend, { email: registeredEmail });
-                      alert("New OTP sent!");
-                    } catch (error) {
-                      setVerificationError("Failed to resend OTP.");
-                      console.error(error)
-                    }
-                  }}
-                >
-                  Resend Code
-                </button>
-              </div>
-             <button className="cancel" onClick={() => setIsVerificationDialogOpen(false)}>Cancel</button>
-            </form>
-          </div>
+                disabled={isLoading}
+              >
+                {isLoading ? "Sending..." : "Resend Code"}
+              </button>
+            </div>
+            <button
+              className="cancel"
+              onClick={() => setIsVerificationDialogOpen(false)}
+            >
+              Cancel
+            </button>
+          </form>
         </div>
-      )}
+      </div>
     </div>
   );
 }

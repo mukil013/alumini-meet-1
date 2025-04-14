@@ -1,6 +1,5 @@
 const User = require("../model/userModel");
 const nodemailer = require("nodemailer");
-const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 
 dotenv.config();
@@ -149,6 +148,22 @@ const verifyOTP = async (req, res) => {
   }
 };
 
+const registerAdmin = async (req, res) => {
+  try {
+    const { ...userData } = req.body;
+    User.create(userData);
+    res.status(200).json({
+      status: "Success",
+      message: "Admin registered successfully.",
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "failure",
+      message: `Registration failed: ${error.message}`,
+    });
+  }
+};
+
 // Validate user login
 const validateUser = async (req, res) => {
   try {
@@ -208,14 +223,31 @@ const updateProfile = async (req, res) => {
       batch: req.body.batch,
       gender: req.body.gender,
       phoneNumber: req.body.phoneNumber,
-      skills: req.body.skills,
       bio: req.body.bio,
       linkedIn: req.body.linkedIn,
       github: req.body.github,
       twitter: req.body.twitter,
-      interests: req.body.interests,
       companyName: req.body.companyName,
     };
+
+    // Parse skills and interests from JSON strings
+    if (req.body.skills) {
+      try {
+        updatedProfile.skills = JSON.parse(req.body.skills);
+      } catch (error) {
+        console.error("Error parsing skills:", error);
+        updatedProfile.skills = [];
+      }
+    }
+
+    if (req.body.interests) {
+      try {
+        updatedProfile.interests = JSON.parse(req.body.interests);
+      } catch (error) {
+        console.error("Error parsing interests:", error);
+        updatedProfile.interests = [];
+      }
+    }
 
     // If an image is uploaded, add userImg field
     if (req.file) {
@@ -292,4 +324,5 @@ module.exports = {
   validateUser,
   updateProfile,
   getUserById,
+  registerAdmin,
 };

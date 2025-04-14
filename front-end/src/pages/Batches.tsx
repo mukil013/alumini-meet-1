@@ -10,7 +10,7 @@ export default function Batches() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterField, setFilterField] = useState("all"); // State for filter field selection
+  const [filterField, setFilterField] = useState<"all" | "name" | "dept" | "email" | "phone" | "linkedin" | "twitter">("all");
 
   // Fetch all users on component mount
   useEffect(() => {
@@ -19,10 +19,8 @@ export default function Batches() {
       setError("");
 
       try {
-        const response = await axios.get(
-          `${mainUrlPrefix}/admin/getAllUsers`
-        );
-        if (response.data && response.data.users) {
+        const response = await axios.get(`${mainUrlPrefix}/admin/getAllUsers`);
+        if (response.data?.users) {
           setAllUsers(response.data.users);
         } else {
           setError("No users found in the response.");
@@ -41,62 +39,43 @@ export default function Batches() {
   // Memoized filtered users for better performance
   const filteredUsers = useMemo(() => {
     if (!selectedBatch) return [];
+    
+    // First filter by batch
     const batchUsers = allUsers.filter((user: any) => user.batch == selectedBatch);
-    if (!searchTerm) return batchUsers;
+    if (!searchTerm.trim()) return batchUsers;
 
     const lowerSearchTerm = searchTerm.toLowerCase();
 
     return batchUsers.filter((user: any) => {
-      // Check all fields if 'all' is selected
-      if (filterField === "all") {
-        return (
-          (user.firstName &&
-            user.firstName.toLowerCase().includes(lowerSearchTerm)) ||
-          (user.lastName &&
-            user.lastName.toLowerCase().includes(lowerSearchTerm)) ||
-          (user.dept && user.dept.toLowerCase().includes(lowerSearchTerm)) ||
-          (user.email && user.email.toLowerCase().includes(lowerSearchTerm)) ||
-          (user.phoneNumber &&
-            (() => {
-              return user.phoneNumber.toString() === lowerSearchTerm;
-            })) ||
-          (user.linkedIn &&
-            user.linkedIn.toLowerCase().includes(lowerSearchTerm)) ||
-          (user.twitter && user.twitter.toLowerCase().includes(lowerSearchTerm))
-        );
-      }
+      // Helper function to check if a field exists and matches search term
+      const fieldMatches = (fieldValue: string | number | undefined) => {
+        if (!fieldValue) return false;
+        return fieldValue.toString().toLowerCase().includes(lowerSearchTerm);
+      };
 
-      // Check specific field if selected
       switch (filterField) {
+        case "all":
+          return (
+            fieldMatches(user.firstName) ||
+            fieldMatches(user.lastName) ||
+            fieldMatches(user.dept) ||
+            fieldMatches(user.email) ||
+            fieldMatches(user.phoneNumber) ||
+            fieldMatches(user.linkedIn) ||
+            fieldMatches(user.twitter)
+          );
         case "name":
-          return (
-            (user.firstName &&
-              user.firstName.toLowerCase().includes(lowerSearchTerm)) ||
-            (user.lastName &&
-              user.lastName.toLowerCase().includes(lowerSearchTerm))
-          );
+          return fieldMatches(user.firstName) || fieldMatches(user.lastName);
         case "dept":
-          return user.dept && user.dept.toLowerCase().includes(lowerSearchTerm);
+          return fieldMatches(user.dept);
         case "email":
-          return (
-            user.email && user.email.toLowerCase().includes(lowerSearchTerm)
-          );
+          return fieldMatches(user.email);
         case "phone":
-          return (
-            user.phoneNumber &&
-            (() => {
-              return user.phoneNumber.toString() === lowerSearchTerm;
-            })
-          );
+          return fieldMatches(user.phoneNumber);
         case "linkedin":
-          return (
-            user.linkedIn &&
-            user.linkedIn.toLowerCase().includes(lowerSearchTerm)
-          );
+          return fieldMatches(user.linkedIn);
         case "twitter":
-          return (
-            user.twitter && user.twitter.toLowerCase().includes(lowerSearchTerm)
-          );
+          return fieldMatches(user.twitter);
         default:
           return true;
       }
@@ -120,7 +99,7 @@ export default function Batches() {
   return (
     <div className="batches-body">
       <ul id="batches">
-        {[...Array(9)].map((_, index) => {
+        {Array.from({ length: 9 }, (_, index) => {
           const year = 2015 + index;
           return (
             <li key={year}>
@@ -135,13 +114,13 @@ export default function Batches() {
       {/* Dialog Box */}
       {isDialogOpen && (
         <div className="dialog-overlay" onClick={handleCloseDialog}>
-          <div className="dialog-box" onClick={(e) => e.stopPropagation()}>
+          <div className="batch-dialog-box" onClick={(e) => e.stopPropagation()}>
             <div className="dialog-header">
               <h2 className="batch-selected-year">Batch of {selectedBatch}</h2>
               <div className="search-controls">
                 <select
                   value={filterField}
-                  onChange={(e) => setFilterField(e.target.value)}
+                  onChange={(e) => setFilterField(e.target.value as any)}
                   className="filter-select"
                 >
                   <option value="all">All Fields</option>
@@ -154,7 +133,7 @@ export default function Batches() {
                 </select>
                 <input
                   type="text"
-                  placeholder={`Search by ${filterField}...`}
+                  placeholder={`Search by ${filterField === "all" ? "any field" : filterField}...`}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="search-input"
@@ -169,14 +148,10 @@ export default function Batches() {
             ) : filteredUsers.length === 0 ? (
               <p>
                 No users found{" "}
-                {searchTerm ? "matching your search" : "for this batch"}.
+                {searchTerm.trim() ? "matching your search" : "for this batch"}.
               </p>
             ) : (
               <>
-                <p className="result-count">
-                  {filteredUsers.length}{" "}
-                  {filteredUsers.length === 1 ? "member" : "members"} found
-                </p>
                 <ul className="user-list">
                   {filteredUsers.map((user: any) => (
                     <li key={user._id} className="user-item">

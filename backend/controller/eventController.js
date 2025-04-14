@@ -1,26 +1,18 @@
-const multer = require("multer");
 const Event = require("../model/eventModel");
+const {
+  createFileUploadMiddleware,
+  processUploadedFile,
+} = require("../middleware/imageHandler");
 
-// Multer configuration to handle file uploads
-const upload = multer({ storage: multer.memoryStorage() });
+// Configure file upload middleware for event images
+const handleFileUpload = createFileUploadMiddleware([
+  { name: "eventImg", maxCount: 1 },
+]);
 
-// Helper function to format events with base64 images
-const formatEventsWithBase64 = (events) => {
-  return events.map((event) => ({
-    ...event.toObject(),
-    eventImg: event.eventImg
-      ? `data:image/jpeg;base64,${event.eventImg.toString("base64")}`
-      : "https://placehold.co/600x400@2x.png"
-  }));
-};
-
-// Add Event
 const addEvent = async (req, res) => {
   try {
     const { eventTitle, eventDescription, applyLink } = req.body;
-    const eventImg = req.file?.buffer;
 
-    // Validate required fields
     if (!eventTitle || !eventDescription || !applyLink) {
       return res.status(400).json({
         status: "failure",
@@ -28,8 +20,11 @@ const addEvent = async (req, res) => {
       });
     }
 
+    // Extract image data
+    const eventImg = processUploadedFile(req, "eventImg");
+
     // Create new event
-    await Event.create({
+    const newEvent = await Event.create({
       eventImg,
       eventTitle,
       eventDescription,
@@ -39,6 +34,7 @@ const addEvent = async (req, res) => {
     res.status(201).json({
       status: "Success",
       message: "Event added successfully.",
+      eventId: newEvent._id,
     });
   } catch (error) {
     res.status(500).json({
@@ -49,62 +45,18 @@ const addEvent = async (req, res) => {
   }
 };
 
-// Get All Events
-const getAllEvents = async (req, res) => {
-  try {
-    const events = await Event.find();
-
-    // Format events with base64 images
-    const formattedEvents = formatEventsWithBase64(events);
-
-    res.status(200).json({
-      status: "Success",
-      message: "Fetched the events successfully.",
-      events: formattedEvents,
-    });
-  } catch (error) {
-    res.status(500).json({
-      status: "failure",
-      message: `Failed to fetch events: ${error.message}`,
-    });
-  }
-};
-
-// Delete Event
-const deleteEvent = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    // Check if the event exists before deleting
-    const event = await Event.findById(id);
-    if (!event) {
-      return res.status(404).json({
-        status: "failure",
-        message: "Event not found.",
-      });
-    }
-
-    await Event.findByIdAndDelete(id);
-
-    res.status(200).json({
-      status: "Success",
-      message: "Event deleted successfully.",
-    });
-  } catch (error) {
-    res.status(500).json({
-      status: "failure",
-      message: `Failed to delete event: ${error.message}`,
-    });
-  }
-};
-
-// Edit Event
 const editEvent = async (req, res) => {
   try {
     const { id } = req.params;
     const { eventTitle, eventDescription, applyLink } = req.body;
 
-    // Validate required fields
+    if (!id) {
+      return res.status(400).json({
+        status: "failure",
+        message: "Event ID is required.",
+      });
+    }
+
     if (!eventTitle || !eventDescription || !applyLink) {
       return res.status(400).json({
         status: "failure",
@@ -112,20 +64,17 @@ const editEvent = async (req, res) => {
       });
     }
 
-    // Prepare update object
-    const updatedEvent = {
-      eventTitle,
-      eventDescription,
-      applyLink,
-    };
+    const updatedEvent = { eventTitle, eventDescription, applyLink };
 
-    // Check if a new image is uploaded
-    if (req.file) {
-      updatedEvent.eventImg = req.file.buffer;
-    }
+    // Handle image update
+    const eventImg = processUploadedFile(req, "eventImg");
+    if (eventImg) updatedEvent.eventImg = eventImg;
 
-    // Update event
-    const result = await Event.findByIdAndUpdate(id, updatedEvent, { new: true });
+    const result = await Event.findByIdAndUpdate(id, updatedEvent, {
+      new: true,
+      runValidators: true,
+    });
+
     if (!result) {
       return res.status(404).json({
         status: "failure",
@@ -136,6 +85,7 @@ const editEvent = async (req, res) => {
     res.status(200).json({
       status: "Success",
       message: "Event details edited successfully.",
+      event: result,
     });
   } catch (error) {
     res.status(500).json({
@@ -146,4 +96,109 @@ const editEvent = async (req, res) => {
   }
 };
 
-module.exports = { addEvent, getAllEvents, deleteEvent, editEvent, upload };
+const getEventImage = async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.eventId);
+    if (!event || !event.eventImg || !event.eventImg.data) {
+      return res.status(404).json({ message: "Event image not found" });
+    }
+
+    res.set("Content-Type", event.eventImg.contentType);
+    res.send(event.eventImg.data);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
+const getAllEvents = async (req, res) => {
+  try {
+    const events = await Event.find();
+    
+    // Format the events to ensure image data is properly handled
+    const formattedEvents = events.map(event => {
+      const eventObj = event.toObject();
+      
+      // Convert Buffer to base64 string for the frontend
+      if (eventObj.eventImg && eventObj.eventImg.data) {
+        eventObj.eventImg.data = eventObj.eventImg.data.toString('base64');
+      }
+      
+      return eventObj;
+    });
+    
+    res.status(200).json({
+      status: "Success",
+      message: "Fetched all events successfully.",
+      events: formattedEvents,
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "Failure",
+      message: `Cannot fetch events: ${error.message}`,
+    });
+  }
+};
+
+const deleteEvent = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const event = await Event.findByIdAndDelete(id);
+
+    if (!event) {
+      return res.status(404).json({
+        status: "Failure",
+        message: "Event not found.",
+      });
+    }
+
+    res.status(200).json({
+      status: "Success",
+      message: "Event deleted successfully.",
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "Failure",
+      message: `Event cannot be deleted: ${error.message}`,
+    });
+  }
+};
+
+const getEventById = async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id);
+    if (!event) {
+      return res.status(404).json({
+        status: "Failure",
+        message: "Event not found",
+      });
+    }
+
+    // Convert the event to a plain object and format the image data
+    const eventObj = event.toObject();
+    if (eventObj.eventImg && eventObj.eventImg.data) {
+      eventObj.eventImg.data = eventObj.eventImg.data.toString('base64');
+    }
+
+    res.status(200).json({
+      status: "Success",
+      message: "Event fetched successfully",
+      event: eventObj,
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "Failure",
+      message: `Cannot fetch event: ${error.message}`,
+    });
+  }
+};
+
+module.exports = {
+  handleFileUpload,
+  addEvent,
+  getAllEvents,
+  deleteEvent,
+  editEvent,
+  getEventImage,
+  getEventById,
+};

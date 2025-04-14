@@ -109,7 +109,7 @@ export default function Events() {
         );
         alert("Event updated successfully!");
       } else {
-        await axios.post(`${mainUrlPrefix}/event/addEvents`, formDataToSend, {
+        await axios.post(`${mainUrlPrefix}/event/addEvent`, formDataToSend, {
           headers: { "Content-Type": "multipart/form-data" },
         });
         alert("Event added successfully!");
@@ -143,6 +143,24 @@ export default function Events() {
     }
   };
 
+  const getImageUrl = (event: Event) => {
+    if (!event.eventImg) return "https://via.placeholder.com/150";
+    
+    let imageData = event.eventImg.data;
+    
+    if (typeof imageData !== 'string') {
+      try {
+        const uint8Array = new Uint8Array(Object.values(imageData));
+        imageData = btoa(String.fromCharCode.apply(null, Array.from(uint8Array)));
+      } catch (error) {
+        console.error("Error converting image data:", error);
+        return "https://via.placeholder.com/150";
+      }
+    }
+      
+    return `data:${event.eventImg.contentType};base64,${imageData}`;
+  };
+
   if (loading) return <div className="loading">Loading events...</div>;
   if (error) return <div className="error">{error}</div>;
 
@@ -160,7 +178,7 @@ export default function Events() {
             <li key={event._id}>
               <div className="event-item">
                 <img
-                  src={`data:image/jpeg;base64,${event.eventImg.toString()}`}
+                  src={getImageUrl(event)}
                   alt="event image"
                 />
                 <div className="event-title">{event.eventTitle}</div>
@@ -205,9 +223,7 @@ export default function Events() {
                 />
                 {currentEvent && (
                   <img
-                    src={`data:${
-                      currentEvent.eventImg.contentType
-                    };base64,${currentEvent.eventImg.data.toString()}`}
+                    src={getImageUrl(currentEvent)}
                     alt="current event"
                     style={{ width: "100px", marginTop: "10px" }}
                   />

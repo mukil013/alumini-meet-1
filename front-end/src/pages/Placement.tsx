@@ -3,13 +3,12 @@ import axios from "axios";
 import "./style/Placement.css";
 import { mainPythonUrl, mainUrlPrefix } from "../main";
 
-
-interface Ats{
+interface Ats {
   ats_score: string;
-  missing_keywords:string[];
+  missing_keywords: string[];
 }
 
-interface Placement{
+interface Placement {
   _id: string;
   companyImageUrl: string;
   companyName: string;
@@ -29,12 +28,14 @@ export default function Placement() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isLoadingAts, setIsLoadingAts] = useState(false);
   const [currentJd, setCurrentJd] = useState("");
+  const [showDescriptionDialog, setShowDescriptionDialog] = useState(false);
+  const [selectedDescription, setSelectedDescription] = useState("");
 
   useEffect(() => {
     const fetchAllPlacements = async () => {
       try {
         const response = await axios.get(
-          `${mainUrlPrefix}/placement/getAllPlacement`
+          `${mainUrlPrefix}/placement/getAllPlacement`,
         );
         setPlacements(response.data);
         setLoading(false);
@@ -64,10 +65,7 @@ export default function Placement() {
       formData.append("resume", selectedFile);
       formData.append("job_description", currentJd);
 
-      const response = await axios.post(
-        `${mainPythonUrl}/ats-score`,
-        formData
-      );
+      const response = await axios.post(`${mainPythonUrl}/ats-score`, formData);
       setAtsResult(response.data);
     } catch (error) {
       console.error("ATS Check Error:", error);
@@ -77,7 +75,7 @@ export default function Placement() {
     }
   };
 
-  const openDialog = (jd:string) => {
+  const openDialog = (jd: string) => {
     setCurrentJd(jd);
     setIsDialogOpen(true);
   };
@@ -88,9 +86,30 @@ export default function Placement() {
     setSelectedFile(null);
   };
 
+  const truncateDescription = (description: string) => {
+    return {
+      truncated:
+        description.length > 150
+          ? description.substring(0, 150) + "..."
+          : description,
+      isTruncated: description.length > 150,
+    };
+  };
+
+  const handleReadMore = (e: React.MouseEvent, description: string) => {
+    e.stopPropagation();
+    setSelectedDescription(description);
+    setShowDescriptionDialog(true);
+  };
+
+  const handleCloseDescriptionDialog = () => {
+    setShowDescriptionDialog(false);
+  };
+
   if (loading) return <div className="loading">Loading...</div>;
   if (error) return <div className="error">{error}</div>;
-  if (placements.length === 0) return <div className="no-data">No placements found.</div>;
+  if (placements.length === 0)
+    return <div className="no-data">No placements found.</div>;
 
   return (
     <div className="placement-container">
@@ -98,16 +117,37 @@ export default function Placement() {
         {placements.map((placement: Placement) => (
           <div key={placement._id} className="placement-card">
             <img
-              src={placement.companyImageUrl || 'https://via.placeholder.com/150'}
+              src={
+                placement.companyImageUrl || "https://via.placeholder.com/150"
+              }
               alt={`${placement.companyName} logo`}
               className="company-logo"
             />
             <h2>{placement.companyName}</h2>
-            <p><strong>Role:</strong> {placement.jobRole}</p>
-            <p><strong>Type:</strong> {placement.jobType}</p>
-            <p><strong>Location:</strong> {placement.location}</p>
-            <div className="actions">
-              <button 
+            <p>
+              <strong>Role:</strong> {placement.jobRole}
+            </p>
+            <p>
+              <strong>Type:</strong> {placement.jobType}
+            </p>
+            <p>
+              <strong>Location:</strong> {placement.location}
+            </p>
+            <div className="company-description-container">
+              <div className="company-description">
+                {truncateDescription(placement.jobDescription).truncated}
+              </div>
+              {truncateDescription(placement.jobDescription).isTruncated && (
+                <button
+                  className="read-more-btn"
+                  onClick={(e) => handleReadMore(e, placement.jobDescription)}
+                >
+                  Read more...
+                </button>
+              )}
+            </div>
+            <div className="placement-user-actions">
+              <button
                 className="ats-btn"
                 onClick={() => openDialog(placement.jobDescription)}
               >
@@ -119,7 +159,7 @@ export default function Placement() {
                 rel="noopener noreferrer"
                 className="apply-btn"
               >
-                Know more
+                Apply Now
               </a>
             </div>
           </div>
@@ -130,23 +170,34 @@ export default function Placement() {
         <div className="dialog-overlay">
           <div className="dialog-content">
             <h2>Check Resume Fit</h2>
-            <input 
-              type="file" 
-              accept=".pdf,.docx" 
-              onChange={handleFileChange} 
+            <input
+              type="file"
+              accept=".pdf,.docx"
+              onChange={handleFileChange}
             />
             {isLoadingAts ? (
               <div className="loader">Loading...</div>
             ) : (
               atsResult && (
                 <div className="ats-result">
-                  <p className="atsScore"><b>Score:</b> <span className="atsScoreForResume">{atsResult.ats_score}</span></p>
-                  <p className="missingWords"><b>Missing keywords:</b> <span>{atsResult.missing_keywords.join(", ")}</span></p>
+                  <p className="atsScore">
+                    <b>Score:</b>{" "}
+                    <span className="atsScoreForResume">
+                      {atsResult.ats_score}
+                    </span>
+                  </p>
+                  <p className="missingWords">
+                    <b>Missing keywords:</b>{" "}
+                    <span>{atsResult.missing_keywords.join(", ")}</span>
+                  </p>
                 </div>
               )
             )}
             <div className="dialog-actions">
-              <button onClick={handleAtsCheck} disabled={!selectedFile || isLoadingAts}>
+              <button
+                onClick={handleAtsCheck}
+                disabled={!selectedFile || isLoadingAts}
+              >
                 Check ATS Score
               </button>
               <button onClick={closeDialog}>Close</button>
@@ -154,7 +205,20 @@ export default function Placement() {
           </div>
         </div>
       )}
+
+      {showDescriptionDialog && (
+        <div className="dialog-overlay" onClick={handleCloseDescriptionDialog}>
+          <div className="dialog-box" onClick={(e) => e.stopPropagation()}>
+            <h3>Job Description</h3>
+            <div className="description-content">
+              {selectedDescription.split("\n").map((line, index) => (
+                <p key={index}>{line}</p>
+              ))}
+            </div>
+            <button onClick={handleCloseDescriptionDialog}>Close</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-

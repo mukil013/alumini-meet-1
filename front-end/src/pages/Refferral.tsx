@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import "./style/Projects.css";
 import { mainUrlPrefix } from "../main";
 
-interface Refferal{
+interface Refferal {
   _id: string;
   referraltitle: string;
   jobDescription: string;
@@ -18,6 +18,9 @@ export default function Referrals() {
   const [referrals, setReferrals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [selectedReferral, setSelectedReferral] = useState<Refferal | null>(
+    null,
+  );
   const [addReferralForm, setAddReferralForm] = useState(false);
   const [editingReferral, setEditingReferral] = useState<Refferal | null>(null);
   const [formData, setFormData] = useState({
@@ -26,24 +29,49 @@ export default function Referrals() {
     applyLink: "",
   });
 
+  // Open description dialog
+  const openDescriptionDialog = (referral: Refferal) => {
+    setSelectedReferral(referral);
+  };
+
+  // Close description dialog
+  const closeDescriptionDialog = () => {
+    setSelectedReferral(null);
+  };
+
   // Fetch referrals based on the selected tab
   const fetchReferrals = useCallback(async () => {
     try {
+      setLoading(true);
+      setError("");
+
       let endpoint = "";
       if (tab === "Explore") {
         endpoint = `${mainUrlPrefix}/referral/getAllReferrals`;
       } else if (tab === "Yours") {
         endpoint = `${mainUrlPrefix}/referral/getUserReferrals/${userId}`;
       }
+
       const response = await axios.get(endpoint);
-      setReferrals(
-        tab === "Explore"
-          ? response.data.referral || []
-          : response.data.referrals || []
-      );
-    } catch (err) {
+
+      if (response.data.status === "Success") {
+        // Set referrals to the array from the response, or empty array if none
+        setReferrals(
+          tab === "Explore"
+            ? response.data.referral || []
+            : response.data.referrals || [],
+        );
+      } else {
+        // Only set error for actual errors, not for empty results
+        setError(response.data.message);
+      }
+    } catch (err: any) {
       console.error("Failed to fetch referrals:", err);
-      setError("Failed to fetch referrals. Please try again.");
+      if (err.response && err.response.data && err.response.data.message) {
+        setError(err.response.data.message);
+      } else {
+        setError("Failed to fetch referrals. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -55,7 +83,7 @@ export default function Referrals() {
 
   // Handle input changes for the add/edit form
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -76,7 +104,7 @@ export default function Referrals() {
       const response = await axios.post(
         `${mainUrlPrefix}/referral/addReferral/${userId}`,
         payload,
-        { headers: { "Content-Type": "application/json" } }
+        { headers: { "Content-Type": "application/json" } },
       );
       if (response.data.status === "Success") {
         setAddReferralForm(false);
@@ -92,7 +120,7 @@ export default function Referrals() {
   const handleDeleteReferral = async (referralId: string) => {
     try {
       await axios.delete(
-        `${mainUrlPrefix}/referral/deleteReferral/${referralId}`
+        `${mainUrlPrefix}/referral/deleteReferral/${referralId}`,
       );
       fetchReferrals();
     } catch (error) {
@@ -112,7 +140,7 @@ export default function Referrals() {
       const response = await axios.patch(
         `${mainUrlPrefix}/referral/editReferral/${referralId}`,
         payload,
-        { headers: { "Content-Type": "application/json" } }
+        { headers: { "Content-Type": "application/json" } },
       );
       if (response.data.status === "Success") {
         setEditingReferral(null);
@@ -171,26 +199,35 @@ export default function Referrals() {
 
       <div className="projects-grid">
         {referrals.length === 0 ? (
-          <p>No referrals found.</p>
+          <div className="no-referrals-message">
+            <p>No referrals found.</p>
+          </div>
         ) : (
           referrals.map((referral: Refferal) => (
             <div key={referral._id} className="project-card">
               <h3>{referral.referraltitle}</h3>
-              <p>
-                <strong>Posted By:</strong> {referral.userId}
-              </p>
-              <p>{referral.jobDescription}</p>
+              <div className="referral-description">
+                <p className="truncated">{referral.jobDescription}</p>
+                {referral.jobDescription.length > 150 && (
+                  <button
+                    className="read-more-btn"
+                    onClick={() => openDescriptionDialog(referral)}
+                  >
+                    Read More
+                  </button>
+                )}
+              </div>
               <a
                 href={referral.applyLink}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="know-more-btn"
               >
-                Referral Link
+                <p>Referral Link</p>
               </a>
               {/* Show edit and delete if the referral belongs to the current alumni */}
               {role === "alumini" && referral.userId === userId && (
-                <div className="project-actions">
+                <div className="post-actions">
                   <button
                     type="button"
                     onClick={() => {
@@ -203,13 +240,29 @@ export default function Referrals() {
                       setAddReferralForm(true);
                     }}
                   >
-                    Edit
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      height="24px"
+                      viewBox="0 -960 960 960"
+                      width="24px"
+                      fill="#e3e3e3"
+                    >
+                      <path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z" />
+                    </svg>
                   </button>
                   <button
                     type="button"
                     onClick={() => handleDeleteReferral(referral._id)}
                   >
-                    Delete
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      height="24px"
+                      viewBox="0 -960 960 960"
+                      width="24px"
+                      fill="#e3e3e3"
+                    >
+                      <path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z" />
+                    </svg>
                   </button>
                 </div>
               )}
@@ -218,12 +271,41 @@ export default function Referrals() {
         )}
       </div>
 
+      {/* Description Dialog */}
+      {selectedReferral && (
+        <div
+          className="dialog-overlay"
+          onClick={() => closeDescriptionDialog()}
+        >
+          <div className="dialog-box">
+            <div className="dialog-header">
+              <h2 className="refferalHeader">
+                {selectedReferral.referraltitle}
+              </h2>
+            </div>
+            <div className="dialog-content">
+              <div className="full-description">
+                <p>{selectedReferral.jobDescription}</p>
+              </div>
+              <a
+                href={selectedReferral.applyLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="know-more-btn"
+              >
+                Referral Link
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Modal for Add/Edit Referral */}
       {addReferralForm && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <h2>{editingReferral ? "Edit Referral" : "Add New Referral"}</h2>
+        <div className="dialog-overlay">
+          <div className="dialog-box">
             <form
+              className="post-form"
               onSubmit={(e) => {
                 if (editingReferral) {
                   handleEditReferral(e, editingReferral._id);
@@ -232,31 +314,36 @@ export default function Referrals() {
                 }
               }}
             >
-              <input
-                type="text"
-                name="referraltitle"
-                placeholder="Referral Title"
-                value={formData.referraltitle}
-                onChange={handleInputChange}
-                required
-              />
-              <textarea
-                name="jobDescription"
-                placeholder="Referral Description"
-                value={formData.jobDescription}
-                onChange={handleInputChange}
-                required
-                rows={4}
-              />
-              <input
-                type="url"
-                name="applyLink"
-                placeholder="Referral Link"
-                value={formData.applyLink}
-                onChange={handleInputChange}
-                required
-              />
-              <div className="modal-buttons">
+              <div className="referal-inputs">
+                <h2>
+                  {editingReferral ? "Edit Referral" : "Add New Referral"}
+                </h2>
+                <input
+                  type="text"
+                  name="referraltitle"
+                  placeholder="Referral Title"
+                  value={formData.referraltitle}
+                  onChange={handleInputChange}
+                  required
+                />
+                <textarea
+                  name="jobDescription"
+                  placeholder="Referral Description"
+                  value={formData.jobDescription}
+                  onChange={handleInputChange}
+                  required
+                  rows={4}
+                />
+                <input
+                  type="url"
+                  name="applyLink"
+                  placeholder="Referral Link"
+                  value={formData.applyLink}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+              <div className="btn-grp">
                 <button type="submit" className="submit-btn">
                   {editingReferral ? "Update Referral" : "Add Referral"}
                 </button>

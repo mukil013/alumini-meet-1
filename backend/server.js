@@ -1,13 +1,14 @@
 const express = require("express");
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const userRoutes = require("./routes/userRoutes");
 const adminRoutes = require("./routes/adminRoute");
-const placementRoutes = require('./routes/placementRoutes');
+const placementRoutes = require("./routes/placementRoutes");
 const eventRoutes = require("./routes/eventRoutes");
 const projectRoutes = require("./routes/projectRoute");
 const referralRoutes = require("./routes/referralRoutes");
-const mentorship = require("./routes/mentorshipRoutes")
+const mentorship = require("./routes/mentorshipRoutes");
+const companyRoutes = require("./routes/topCompanyRoute");
 const cors = require("cors");
 const app = express();
 
@@ -44,7 +45,9 @@ app.use("/project", projectRoutes);
 
 app.use("/referral", referralRoutes);
 
-app.use("/mentorship", mentorship)
+app.use("/mentorship", mentorship);
+
+app.use("/top-companies", companyRoutes);
 
 const PORT = 8000;
 app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));

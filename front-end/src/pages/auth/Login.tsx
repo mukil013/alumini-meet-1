@@ -12,9 +12,10 @@ export default function Login() {
     email: "",
     password: "",
   });
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({
@@ -27,16 +28,18 @@ export default function Login() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setIsLoading(true);
+
     try {
       const response = await axios.post(LoginLinkBackend, formData);
 
-      // Save tokens to sessionStorage
       const { accessToken, refreshToken, userDetail } = response.data;
-      const { userId, role } = userDetail
+      const { userId, role, companyName } = userDetail;
       sessionStorage.setItem("accessToken", accessToken);
       sessionStorage.setItem("refreshToken", refreshToken);
       sessionStorage.setItem("user", userId);
-      sessionStorage.setItem("role", role)
+      sessionStorage.setItem("role", role);
+      sessionStorage.setItem("company", companyName);
 
       switch (role) {
         case "user":
@@ -46,23 +49,23 @@ export default function Login() {
           nav("/home");
           break;
         case "admin":
-          nav("/admin-home");
+          nav("/admin/user-management");
           break;
-        default:
-          nav("/home");
       }
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const axiosError = error as AxiosError<{ message: string }>;
         console.error(
           "Error during login:",
-          axiosError.response?.data?.message || axiosError.message
+          axiosError.response?.data?.message || axiosError.message,
         );
         alert(
           axiosError.response?.data?.message ||
-            "Login failed. Please check your credentials."
+            "Login failed. Please check your credentials.",
         );
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -102,7 +105,11 @@ export default function Login() {
                 Forgot password
               </Link>
             </label>
-            <input type="submit" value="Login" />
+            <input
+              type="submit"
+              value={isLoading ? "Logging in..." : "Login"}
+              disabled={isLoading}
+            />
             <p>
               Don't have an account? <Link to="/register">Register</Link>
             </p>

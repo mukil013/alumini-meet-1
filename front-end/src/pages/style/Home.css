@@ -15,9 +15,6 @@
     background-position: 100% 50%;
   }
 }
-.navbar{
-  flex: 1;
-}
 .outlet{
   padding: 1rem;
   flex: 1;
@@ -25,3 +22,42 @@
   height: 100%;
   overflow: auto;
 }
+.hambtn{
+  display: none;
+}
+
+
+@media screen and (max-width: 1080px){
+  .hambtn{
+    display: flex;
+    align-items: center;
+    justify-content: end;
+    position: absolute;
+    top: .5rem;
+    left: .5rem;
+    box-shadow: 0 0 1rem #9e9e9e;
+    background-color: #fff;
+    border-radius: .2rem;
+    padding: .2rem;
+    z-index: 100;
+  }
+  .common-navbar{
+    z-index: 90;
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    top: 0%;
+    left: 0%;
+    background: #22222255;
+    backdrop-filter: blur(1rem);
+    display: flex;
+    justify-content: center;
+  }
+  .common-navbar.hidden {
+    display: none;
+  }
+}
+@media screen and (max-width: 830px){
+
+}
+

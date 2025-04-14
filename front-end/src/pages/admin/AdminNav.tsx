@@ -15,16 +15,18 @@ export default function Navbar() {
     return location.pathname === path;
   };
 
-  isActive("/home");
-
   return (
     <nav className="common-nav">
-      <div className="common-nav-logo">Alumini meet</div>
+      <div className="common-nav-logo">Alumni meet</div>
       <ul className="common-nav-list">
         <li className="common-nav-list-items">
           <Link
             to="/admin/user-management"
-            className={isActive("/admin/user-management") ? "active" : "" + "common-nav-link"}
+            className={
+              isActive("/admin/user-management")
+                ? "active"
+                : "" + "common-nav-link"
+            }
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -59,9 +61,9 @@ export default function Navbar() {
         </li>
         <li className="common-nav-list-items">
           <Link
-            to="#"
+            to="/admin/CMS"
             className={
-              isActive("#") ? "active" : "" + "common-nav-link"
+              isActive("/admin/CMS") ? "active" : "" + "common-nav-link"
             }
           >
             <svg
@@ -80,7 +82,9 @@ export default function Navbar() {
           <Link
             to="/admin/placement-info"
             className={
-              isActive("/admin/placement-info") ? "active" : "" + "common-nav-link"
+              isActive("/admin/placement-info")
+                ? "active"
+                : "" + "common-nav-link"
             }
           >
             <svg
@@ -93,6 +97,27 @@ export default function Navbar() {
               <path d="M160-240v-480 520-40Zm0 80q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h240l80 80h320q33 0 56.5 23.5T880-640v200h-80v-200H447l-80-80H160v480h200v80H160ZM584-56 440-200l144-144 56 57-87 87 87 87-56 57Zm192 0-56-57 87-87-87-87 56-57 144 144L776-56Z" />
             </svg>
             <p>Placement Info</p>
+          </Link>
+        </li>
+        <li className="common-nav-list-items">
+          <Link
+            to="/admin/edit-top-companies"
+            className={
+              isActive("/admin/edit-top-companies")
+                ? "active"
+                : "" + "common-nav-link"
+            }
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              height="24px"
+              viewBox="0 -960 960 960"
+              width="24px"
+              fill="#e3e3e3"
+            >
+              <path d="m136-240-56-56 212-212q35-35 85-35t85 35l46 46q12 12 28.5 12t28.5-12l178-178H640v-80h240v240h-80v-103L621-405q-35 35-85 35t-85-35l-47-47q-11-11-28-11t-28 11L136-240Z" />
+            </svg>
+            <p>Top Companies</p>
           </Link>
         </li>
       </ul>

@@ -42,18 +42,41 @@ export default function Profile() {
 
   const userId = sessionStorage.getItem("user");
 
+  // Fetch user profile data on mount
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
         if (!userId) throw new Error("User not authenticated");
-
         const response = await axios.get(
           `${mainUrlPrefix}/user/getUser/${userId}`,
         );
         console.log("Raw API Response:", response.data);
-
         const updatedUser = response.data.userDetail;
-        console.log("User Image Data:", updatedUser.userImg);
+
+        // Process user image
+        if (
+          updatedUser.userImg &&
+          typeof updatedUser.userImg === "object" &&
+          Array.isArray(updatedUser.userImg.data)
+        ) {
+          console.log("Raw Buffer Data:", updatedUser.userImg.data);
+          console.log("Content Type:", updatedUser.userImg.contentType);
+
+          // Convert buffer data to base64 string
+          const uint8Array = new Uint8Array(updatedUser.userImg.data);
+          const binaryString = Array.from(uint8Array)
+            .map((byte) => String.fromCharCode(byte))
+            .join("");
+          const base64String = btoa(binaryString);
+
+          // Create a data URL for the image
+          updatedUser.userImg = `data:${updatedUser.userImg.contentType};base64,${base64String}`;
+          console.log("Generated Image URL:", updatedUser.userImg); // Debug: Log the generated image URL
+        } else {
+          console.log("No image data found in user profile");
+          // Set a default image if none is provided
+          updatedUser.userImg = "https://via.placeholder.com/150";
+        }
 
         setUser(updatedUser);
         setLoading(false);
@@ -69,31 +92,30 @@ export default function Profile() {
     fetchUserProfile();
   }, [userId]);
 
+  // Function to handle image display
   const getImageUrl = (userData: User | null) => {
     if (!userData) return "";
-
-    // If userImg is a string (URL or data URL), return it directly
     if (typeof userData.userImg === "string") {
+      // If userImg is already a string (URL or data URL), return it
       return userData.userImg;
-    }
-
-    // If userImg is an object with data and contentType
-    if (userData.userImg && Array.isArray(userData.userImg.data)) {
+    } else if (
+      userData.userImg &&
+      Array.isArray(userData.userImg.data) &&
+      userData.userImg.contentType
+    ) {
       try {
         const uint8Array = new Uint8Array(userData.userImg.data);
-        const base64String = btoa(
-          uint8Array.reduce(
-            (data, byte) => data + String.fromCharCode(byte),
-            "",
-          ),
-        );
+        const binaryString = Array.from(uint8Array)
+          .map((byte) => String.fromCharCode(byte))
+          .join("");
+        const base64String = btoa(binaryString);
         return `data:${userData.userImg.contentType};base64,${base64String}`;
       } catch (error) {
         console.error("Error processing image data:", error);
+        return "";
       }
     }
-
-    // Return default image if no valid image data
+    // Default image if no valid image data
     return "https://static.vecteezy.com/system/resources/thumbnails/036/280/651/small_2x/default-avatar-profile-icon-social-media-user-image-gray-avatar-icon-blank-profile-silhouette-illustration-vector.jpg";
   };
 
@@ -216,6 +238,7 @@ export default function Profile() {
           src={getImageUrl(user)}
           alt={`logged in as ${user.role === "user" ? "student" : user.role}`}
           className="profile-img"
+          style={{ width: "200px", borderRadius: "100%" }}
           onError={(e) => {
             // Fallback if image fails to load
             e.currentTarget.src =

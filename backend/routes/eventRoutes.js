@@ -1,11 +1,20 @@
-const express = require('express');
-const { addEvent, getAllEvents, deleteEvent, editEvent, upload } = require('../controller/eventController');
+const express = require("express");
+const {
+  handleFileUpload,
+  addEvent,
+  getAllEvents,
+  deleteEvent,
+  editEvent,
+  getEventImage, // Ensure this function exists in eventController.js
+} = require("../controller/eventController");
+
 const router = express.Router();
 
 // Routes
-router.get('/getAllEvents', getAllEvents);
-router.post('/addEvents', upload.single('eventImg'), addEvent); // Add multer middleware
-router.delete('/deleteEvent/:id', deleteEvent);
-router.put('/editEvent/:id', upload.single('eventImg'), editEvent); // Add multer middleware
+router.get("/getAllEvents", getAllEvents);
+router.post("/addEvent", handleFileUpload, addEvent);
+router.put("/editEvent/:id", handleFileUpload, editEvent);
+router.delete("/deleteEvent/:id", deleteEvent);
+router.get("/getEventImage/:eventId", getEventImage);
 
 module.exports = router;

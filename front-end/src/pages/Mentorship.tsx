@@ -57,8 +57,7 @@ export default function Mentorship() {
   async function fetchGroups() {
     try {
       let url = "";
-      if (currentPage === "explore")
-        url = `${mainUrlPrefix}/mentorship/getAll`;
+      if (currentPage === "explore") url = `${mainUrlPrefix}/mentorship/getAll`;
       else if (currentPage === "yours")
         url = `${mainUrlPrefix}/mentorship/get/${userId}`;
       else if (currentPage === "following")
@@ -83,7 +82,7 @@ export default function Mentorship() {
   const toggleFollow = async (groupId: string) => {
     try {
       await axios.post(
-        `${mainUrlPrefix}/mentorship/follow/${groupId}/${userId}`
+        `${mainUrlPrefix}/mentorship/follow/${groupId}/${userId}`,
       );
       fetchGroups();
     } catch (error) {
@@ -122,9 +121,9 @@ export default function Mentorship() {
 
     try {
       await axios.post(
-      `${mainUrlPrefix}/mentorship/${groupId}/addPost`,
+        `${mainUrlPrefix}/mentorship/${groupId}/addPost`,
         formData,
-        { headers: { "Content-Type": "multipart/form-data" } }
+        { headers: { "Content-Type": "multipart/form-data" } },
       );
       setShowPostForm(false);
       setPostTitle("");
@@ -136,35 +135,39 @@ export default function Mentorship() {
     }
   };
 
-  const handleEditPost = async (e: React.FormEvent, groupId: string, postIndex: number) => {
-    e.preventDefault();
-    const formData = new FormData();
-    formData.append("title", postTitle);
-    formData.append("description", postDescription);
-    if (postImage) {
-      formData.append("file", postImage);
-    }
-
+  const handleEditPost = async (
+    e: React.FormEvent,
+    groupId: string,
+    postIndex: number,
+  ) => {
     try {
+      e.preventDefault();
+      const formData = new FormData();
+      formData.append("title", postTitle);
+      formData.append("description", postDescription);
+      if (postImage) {
+        formData.append("file", postImage);
+      }
       await axios.post(
         `${mainUrlPrefix}/mentorship/${groupId}/updatePost/${postIndex}`,
         formData,
-        { headers: { "Content-Type": "multipart/form-data" } }
+        { headers: { "Content-Type": "multipart/form-data" } },
       );
       setShowPostForm(false);
       setPostTitle("");
       setPostDescription("");
       setPostImage(null);
+      setEditingPost(null);
       fetchGroups();
     } catch (error) {
-      console.error("Error adding post:", error);
+      console.error("Error updating post:", error);
     }
   };
 
   const handleDeletePost = async (postIndex: string, groupId: string) => {
     try {
       await axios.delete(
-        `${mainUrlPrefix}/mentorship/${groupId}/deletePost/${postIndex}`
+        `${mainUrlPrefix}/mentorship/${groupId}/deletePost/${postIndex}`,
       );
       fetchGroups();
     } catch (error) {
@@ -224,7 +227,10 @@ export default function Mentorship() {
                 <div className="nameHolder">
                   <h2>{group.groupTitle}</h2>
                   <p>{group.groupDescription}</p>
-                  <p><strong>Followers : </strong>{group.followers.length}</p>
+                  <p>
+                    <strong>Followers : </strong>
+                    {group.followers.length}
+                  </p>
                 </div>
                 <button
                   className="follow-btn"
@@ -267,10 +273,13 @@ export default function Mentorship() {
                 onClick={() => setSelectedGroup(group)}
                 title={group.groupTitle}
               >
-                 <div className="nameHolder">
+                <div className="nameHolder">
                   <h2>{group.groupTitle}</h2>
                   <p>{group.groupDescription}</p>
-                  <p><strong>Followers : </strong>{group.followers.length}</p>
+                  <p>
+                    <strong>Followers : </strong>
+                    {group.followers.length}
+                  </p>
                 </div>
                 <button
                   className="follow-btn"
@@ -314,31 +323,40 @@ export default function Mentorship() {
             </button>
           )}
           {showAddForm && (
-            <dialog open={showAddForm} className="dialog-box">
-              <form
-                onSubmit={handleAddCommunity}
-                className="add-community-form"
+            <div
+              className="dialog-overlay"
+              onClick={() => setShowAddForm(false)}
+            >
+              <dialog
+                open={showAddForm}
+                className="mentor-dialog-box"
+                onClick={(e) => e.stopPropagation()}
               >
-                <h3>Create a Mentorship Group</h3>
-                <input
-                  type="text"
-                  placeholder="Group Title"
-                  value={groupTitle}
-                  onChange={(e) => setGroupTitle(e.target.value)}
-                  required
-                />
-                <textarea
-                  placeholder="Group Description"
-                  value={groupDescription}
-                  onChange={(e) => setGroupDescription(e.target.value)}
-                  required
-                ></textarea>
-                <button type="submit">Add Group</button>
-                <button type="button" onClick={() => setShowAddForm(false)}>
-                  Cancel
-                </button>
-              </form>
-            </dialog>
+                <form
+                  onSubmit={handleAddCommunity}
+                  className="add-community-form"
+                >
+                  <h3>Create a Mentorship Group</h3>
+                  <input
+                    type="text"
+                    placeholder="Group Title"
+                    value={groupTitle}
+                    onChange={(e) => setGroupTitle(e.target.value)}
+                    required
+                  />
+                  <textarea
+                    placeholder="Group Description"
+                    value={groupDescription}
+                    onChange={(e) => setGroupDescription(e.target.value)}
+                    required
+                  ></textarea>
+                  <button type="submit">Add Group</button>
+                  <button type="button" onClick={() => setShowAddForm(false)}>
+                    Cancel
+                  </button>
+                </form>
+              </dialog>
+            </div>
           )}
           {community.length > 0 ? (
             community.map((group: Group) => (
@@ -350,7 +368,10 @@ export default function Mentorship() {
                 <div className="nameHolder">
                   <h2>{group.groupTitle}</h2>
                   <p>{group.groupDescription}</p>
-                  <p><strong>Followers : </strong>{group.followers.length}</p>
+                  <p>
+                    <strong>Followers : </strong>
+                    {group.followers.length}
+                  </p>
                 </div>
               </div>
             ))
@@ -368,50 +389,81 @@ export default function Mentorship() {
             open={true}
             onClick={(e) => e.stopPropagation()}
           >
-            <div>
-              <h2>{selectedGroup.groupTitle}</h2>
-              <p>{selectedGroup.groupDescription}</p>
+            <div className="post-top-bar">
+              <div>
+                <h2>{selectedGroup.groupTitle}</h2>
+                <p>{selectedGroup.groupDescription}</p>
+              </div>
+              {role === "alumini" && selectedGroup.userId === userId && (
+                <button onClick={() => setShowPostForm(true)} title="Add post">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    height="24px"
+                    viewBox="0 -960 960 960"
+                    width="24px"
+                    fill="#000"
+                  >
+                    <path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h360v80H200v560h560v-360h80v360q0 33-23.5 56.5T760-120H200Zm120-160v-80h320v80H320Zm0-120v-80h320v80H320Zm0-120v-80h320v80H320Zm360-80v-80h-80v-80h80v-80h80v80h80v80h-80v80h-80Z" />
+                  </svg>
+                </button>
+              )}
             </div>
-
-            <h3>Posts</h3>
-            {role === "alumini" && selectedGroup.userId === userId && (
-              <button onClick={() => setShowPostForm(true)}>+ Add Post</button>
-            )}
             {selectedGroup.posts && selectedGroup.posts.length > 0 ? (
               selectedGroup.posts.map((post: any, index: number) => (
                 <div key={post._id} className="post-card">
-                  <h3>{post.post.title}</h3>
-                  <p>{post.post.description}</p>
                   {post.post.image && post.post.image.data && (
                     <img
-                      src={`data:${post.post.image.contentType};base64,${arrayBufferToBase64(
-                        post.post.image.data.data
+                      src={`data:${
+                        post.post.image.contentType
+                      };base64,${arrayBufferToBase64(
+                        post.post.image.data.data,
                       )}`}
                       alt="Post"
-                      style={{ width: "100px", height: "100px" }}
                     />
                   )}
+                  <div className="post-content">
+                    <h1>{post.post.title.toUpperCase()}</h1>
+                    <p>{post.post.description}</p>
+                  </div>
                   {role === "alumini" && selectedGroup.userId === userId && (
-                    <>
+                    <div className="post-actions">
                       <button
+                        title="Edit the post"
                         onClick={() => {
                           setEditingPost(post);
                           setPostTitle(post.post.title);
                           setPostDescription(post.post.description);
                           setShowPostForm(true);
-                          setPostIndex(index)
+                          setPostIndex(index);
                         }}
                       >
-                        Edit
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          height="24px"
+                          viewBox="0 -960 960 960"
+                          width="24px"
+                          fill="#e3e3e3"
+                        >
+                          <path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z" />
+                        </svg>
                       </button>
                       <button
+                        title="Delete the post"
                         onClick={() =>
                           handleDeletePost(post._id, selectedGroup._id)
                         }
                       >
-                        Delete
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          height="24px"
+                          viewBox="0 -960 960 960"
+                          width="24px"
+                          fill="#e3e3e3"
+                        >
+                          <path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z" />
+                        </svg>
                       </button>
-                    </>
+                    </div>
                   )}
                 </div>
               ))
@@ -424,48 +476,54 @@ export default function Mentorship() {
 
       {/* Add/Edit Post Modal */}
       {showPostForm && (
-        <dialog open={showPostForm}>
-          <form
-            onSubmit={
-              editingPost
-                ? (e) => handleEditPost(e, selectedGroup!._id, postIndex)
-                : (e) => handleAddPost(e, selectedGroup!._id)
-            }
-            className="post-form"
-          >
-            <h3>{editingPost ? "Edit Post" : "Add Post"}</h3>
-            <input
-              type="text"
-              placeholder="Post Title"
-              value={postTitle}
-              onChange={(e) => setPostTitle(e.target.value)}
-              required
-            />
-            <textarea
-              placeholder="Post Description"
-              value={postDescription}
-              onChange={(e) => setPostDescription(e.target.value)}
-              required
-            ></textarea>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleFileChange}
-            />
-            <button type="submit">
-              {editingPost ? "Update Post" : "Add Post"}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setShowPostForm(false);
-                setEditingPost(null);
-              }}
+        <div className="dialog-overlay">
+          <dialog open={showPostForm} className="dialog-box">
+            <form
+              onSubmit={
+                editingPost
+                  ? (e) => handleEditPost(e, selectedGroup!._id, postIndex)
+                  : (e) => handleAddPost(e, selectedGroup!._id)
+              }
+              className="post-form"
             >
-              Cancel
-            </button>
-          </form>
-        </dialog>
+              <h3>{editingPost ? "Edit Post" : "Add Post"}</h3>
+              <div className="form-inputs">
+                <input
+                  type="text"
+                  placeholder="Post Title"
+                  value={postTitle}
+                  onChange={(e) => setPostTitle(e.target.value)}
+                  required
+                />
+                <textarea
+                  placeholder="Post Description"
+                  value={postDescription}
+                  onChange={(e) => setPostDescription(e.target.value)}
+                  required
+                ></textarea>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                />
+              </div>
+              <div className="form-actions">
+                <button type="submit">
+                  {editingPost ? "Update Post" : "Add Post"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowPostForm(false);
+                    setEditingPost(null);
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </dialog>
+        </div>
       )}
     </div>
   );

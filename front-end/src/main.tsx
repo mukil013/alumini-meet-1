@@ -5,7 +5,7 @@ import Home from "./pages/Home.tsx";
 import Register from "./pages/auth/Register.tsx";
 import Login from "./pages/auth/Login.tsx";
 import Batches from "./pages/Batches.tsx";
-import Profile from "./pages/Profile.tsx";
+import ProfileNew from "./pages/ProfileNew.tsx";
 import Projects from "./pages/Projects.tsx";
 import Placement from "./pages/Placement.tsx";
 import Mentorship from "./pages/Mentorship.tsx";
@@ -18,6 +18,9 @@ import EditEvent from "./pages/admin/EditEvents.tsx";
 import ProtectedRoute from "./pages/ProtectedRoute.tsx";
 import { StrictMode } from "react";
 import DefaultHome from "./pages/DefaultHome.tsx";
+import ContentModeration from "./pages/admin/ContentModeration.tsx";
+import TopCompanies from "./pages/TopCompanies.tsx";
+import EditTopCompanies from "./pages/admin/EditTopCompanies.tsx";
 
 const router = Bro([
   {
@@ -38,7 +41,7 @@ const router = Bro([
           },
           {
             path: "profile",
-            Component: Profile,
+            Component: ProfileNew,
           },
           {
             path: "Refferral",
@@ -59,6 +62,10 @@ const router = Bro([
           {
             path: "event",
             Component: Events,
+          },
+          {
+            path: "top-companies",
+            Component: TopCompanies,
           },
         ],
       },
@@ -81,23 +88,30 @@ const router = Bro([
         Component: UserManagement,
       },
       {
+        path: "CMS",
+        Component: ContentModeration,
+      },
+      {
         path: "placement-info",
         Component: PlacementInfo,
       },
       {
         path: "edit-event",
         Component: EditEvent,
-      }
-    ]
+      },
+      {
+        path: "edit-top-companies",
+        Component: EditTopCompanies,
+      },
+    ],
   },
 ]);
 
-
-export const mainUrlPrefix = "https://alumini-meet-backend.onrender.com" //"http://localhost:8000"
-export const mainPythonUrl = "https://alumini-meet-python.onrender.com" //"http://127.0.0.1:5000"
+export const mainUrlPrefix = "http://localhost:8000"; // "https://alumini-meet-backend.onrender.com"
+export const mainPythonUrl = "http://127.0.0.1:5000"; // "https://alumini-meet-python.onrender.com"
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <RouterProvider router={router} />
-  </StrictMode>
+  </StrictMode>,
 );
